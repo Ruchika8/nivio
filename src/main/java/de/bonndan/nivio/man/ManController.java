@@ -32,7 +32,11 @@ public class ManController {
         if (pathArr != null) {
             return new ResponseEntity<>(
                     Arrays.stream(pathArr)
-                            .filter(path -> path.endsWith(".html"))
+                            .filter(path ->
+                                    path.endsWith(".html")
+                                    && !path.equals("search.html")
+                                    && !path.equals("genindex.html")
+                            )
                             .toArray(String[]::new),
                     HttpStatus.OK);
         }
