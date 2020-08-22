@@ -5,6 +5,7 @@ import de.bonndan.nivio.model.Item;
 import de.bonndan.nivio.model.LandscapeItem;
 import de.bonndan.nivio.output.map.hex.Hex;
 import j2html.tags.ContainerTag;
+import j2html.tags.DomContent;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -39,7 +40,7 @@ class SVGGroupAreaOutlineFactoryTest {
 
         //when
         SVGGroupAreaOutlineFactory svgGroupAreaOutlineFactory = new SVGGroupAreaOutlineFactory(groupArea);
-        List<ContainerTag> outline = svgGroupAreaOutlineFactory.getOutline("005500");
+        List<DomContent> outline = svgGroupAreaOutlineFactory.getOutline("005500");
 
         //then
         assertNotNull(outline);

@@ -5,6 +5,7 @@ import de.bonndan.nivio.model.Item;
 import de.bonndan.nivio.model.LandscapeItem;
 import de.bonndan.nivio.output.map.hex.Hex;
 import j2html.tags.ContainerTag;
+import j2html.tags.DomContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -62,7 +63,7 @@ public class SVGGroupAreaFactory {
         var fillId = fill != null ? "#" + fill : "";
 
         SVGGroupAreaOutlineFactory svgGroupAreaOutlineFactory = new SVGGroupAreaOutlineFactory(inArea);
-        List<ContainerTag> outlines = svgGroupAreaOutlineFactory.getOutline(fillId);
+        List<DomContent> outlines = svgGroupAreaOutlineFactory.getOutline(fillId);
 
         return new SVGGroupArea(group, inArea, outlines);
     }

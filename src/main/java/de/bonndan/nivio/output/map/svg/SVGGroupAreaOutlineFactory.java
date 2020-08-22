@@ -2,6 +2,7 @@ package de.bonndan.nivio.output.map.svg;
 
 import de.bonndan.nivio.output.map.hex.Hex;
 import j2html.tags.ContainerTag;
+import j2html.tags.DomContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -22,13 +23,18 @@ public class SVGGroupAreaOutlineFactory {
     private final Set<Hex> processed = new HashSet<>();
     private final Set<Hex> groupArea;
 
+    private boolean debug = false;
 
     public SVGGroupAreaOutlineFactory(@NonNull Set<Hex> groupArea) {
         this.groupArea = Objects.requireNonNull(groupArea);
     }
 
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
     @Nullable
-    public List<ContainerTag> getOutline(String fillId) {
+    public List<DomContent> getOutline(String fillId) {
 
         if (!groupArea.iterator().hasNext()) {
             return null;
@@ -37,33 +43,21 @@ public class SVGGroupAreaOutlineFactory {
         //filter all which cannot have an outline
         groupArea.stream().filter(this::completelySurrounded).forEach(processed::add);
 
-        List<ContainerTag> outlines = new ArrayList<>();
+        List<DomContent> outlines = new ArrayList<>();
         while (processed.size() < groupArea.size()) {
-            ContainerTag pointsPath = getContainer(fillId);
-            if (pointsPath != null) {
-                outlines.add(pointsPath);
-            }
+            outlines.addAll(getContainer(fillId));
         }
 
-        /* DEBUG path point order
-        List<ContainerTag> markers = new ArrayList<>();
-        int i = 0;
-        for (Point2D.Double aDouble : path) {
-            markers.add(SvgTagCreator.text(i + "")
-                    .attr("x", aDouble.x)
-                    .attr("y", aDouble.y));
-            i++;
-        }
-        territoryHexes.addAll(markers);
-         */
         return outlines;
     }
 
-    private ContainerTag getContainer(String fillId) {
+    private List<DomContent> getContainer(String fillId) {
         LinkedHashSet<Point2D.Double> path = new LinkedHashSet<>();
         Hex next = findUnprocessed(groupArea);
-        if (next == null)
-            return null;
+        if (next == null) {
+            return new ArrayList<>();
+        }
+
         Position start = new Position(next, 0);
         while (next != null) {
             Position newPos = getPathPointsFor(start, path);
@@ -78,18 +72,34 @@ public class SVGGroupAreaOutlineFactory {
             }
         }
 
-        /* old style of multiple hexes
-        List<DomContent> territoryHexes = groupArea.stream()
-                .map(hex -> new SVGHex(hex, fillId).render())
-                .collect(Collectors.toList());
+        List<DomContent> tags = new ArrayList<>();
+        // old style of multiple hexes
+        if (debug) {
+            tags.addAll(groupArea.stream()
+                    .map(hex -> new SVGHex(hex, fillId).render())
+                    .collect(Collectors.toList()));
+
+                  /* DEBUG path point order
+        List<ContainerTag> markers = new ArrayList<>();
+        int i = 0;
+        for (Point2D.Double aDouble : path) {
+            markers.add(SvgTagCreator.text(i + "")
+                    .attr("x", aDouble.x)
+                    .attr("y", aDouble.y));
+            i++;
+        }
+        territoryHexes.addAll(markers);
          */
+        }
 
         String bezierPath = getBezierPath(new ArrayList<>(path));
-        return SvgTagCreator.path()
+        tags.add(SvgTagCreator.path()
                 .attr("d", bezierPath)
                 .condAttr(!StringUtils.isEmpty(fillId), "stroke", fillId)
                 .condAttr(!StringUtils.isEmpty(fillId), "fill", fillId)
-                .condAttr(!StringUtils.isEmpty(fillId), "fill-opacity", String.valueOf(0.1));
+                .condAttr(!StringUtils.isEmpty(fillId), "fill-opacity", String.valueOf(0.1)));
+
+        return tags;
     }
 
     private String getBezierPath(ArrayList<Point2D.Double> doubles) {
